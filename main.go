@@ -37,7 +37,7 @@ func EncodeDNSName(domainName string) ([]byte, error) {
 	tokenList := strings.Split(domainName, ".")
 
 	for _, v := range tokenList {
-		err := binary.Write(&buf, binary.BigEndian, byte(len(v)))
+		err := binary.Write(&buf, binary.BigEndian, len(v))
 		if err != nil {
 			fmt.Errorf("encode error: %w", err)
 			return nil, err
