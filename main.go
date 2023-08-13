@@ -47,22 +47,25 @@ func EncodeDNSName(domainName string) ([]byte, error) {
 	tokenList := strings.Split(domainName, ".")
 
 	for _, v := range tokenList {
-		err := binary.Write(&buf, binary.BigEndian, len(v))
+		err := binary.Write(&buf, binary.BigEndian, byte(len(v)))
 		if err != nil {
 			return nil, fmt.Errorf("encode error: %w", err)
 		}
 
-		err = binary.Write(&buf, binary.BigEndian, v)
+		err = binary.Write(&buf, binary.BigEndian, []byte(v))
 		if err != nil {
 			return nil, fmt.Errorf("encode error: %w", err)
 		}
 	}
-
+	// TODO?: Add End of Bytes 0x00.
 	return buf.Bytes(), nil
 }
 
 func BuildQuery(domainName string, recordType int) (DNSHeader, DNSQuestion) {
-	name, _ := EncodeDNSName(domainName)
+	name, err := EncodeDNSName(domainName)
+	if err != nil {
+		fmt.Println(err)
+	}
 
 	seed := time.Now().UnixNano()
 	r := rand.New(rand.NewSource(seed))
@@ -81,11 +84,14 @@ func BuildQuery(domainName string, recordType int) (DNSHeader, DNSQuestion) {
 func main() {
 	var buf bytes.Buffer
 
+	header, question := BuildQuery("www.example.com", TYPE_A)
+	fmt.Println(header)
+	fmt.Println(question)
 	// Network Packets usually uses BigEndian.
 	// On the other hand, other situation uses LittleEndian.
-	err := binary.Write(&buf, binary.BigEndian)
-	if err != nil {
-		fmt.Println("error:", err)
-		return
-	}
+	// TODO: err handling
+	binary.Write(&buf, binary.BigEndian, header)
+	binary.Write(&buf, binary.BigEndian, question)
+
+	fmt.Println(buf.Bytes())
 }
