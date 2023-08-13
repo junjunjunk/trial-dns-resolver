@@ -4,7 +4,17 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
+	"math/rand" // Do not use for crypt.
 	"strings"
+	"time"
+)
+
+const (
+	TYPE_A   = 1
+	CLASS_IN = 1
+	// It is necessary to set any time for talking to a DNS resolver.
+	// The encoding for the flags is defined in section 4.1.1 of RFC 1035.
+	RECURSION_DESIRED = 1 << 8
 )
 
 type DNSHeader struct {
@@ -21,11 +31,11 @@ type DNSQuestion struct {
 	Class int
 }
 
-func NewDNSHeader(id int, flags int) DNSHeader {
+func NewDNSHeader(id int, numQuestion int, flags int) DNSHeader {
 	return DNSHeader{
 		ID:             id,
 		Flags:          flags,
-		NumQuestion:    0,
+		NumQuestion:    numQuestion,
 		NumAnswers:     0,
 		NumAuthorities: 0,
 		NumAdditionals: 0,
@@ -39,18 +49,33 @@ func EncodeDNSName(domainName string) ([]byte, error) {
 	for _, v := range tokenList {
 		err := binary.Write(&buf, binary.BigEndian, len(v))
 		if err != nil {
-			fmt.Errorf("encode error: %w", err)
-			return nil, err
+			return nil, fmt.Errorf("encode error: %w", err)
 		}
 
 		err = binary.Write(&buf, binary.BigEndian, v)
 		if err != nil {
-			fmt.Errorf("encode error: %w", err)
-			return nil, err
+			return nil, fmt.Errorf("encode error: %w", err)
 		}
 	}
 
 	return buf.Bytes(), nil
+}
+
+func BuildQuery(domainName string, recordType int) (DNSHeader, DNSQuestion) {
+	name, _ := EncodeDNSName(domainName)
+
+	seed := time.Now().UnixNano()
+	r := rand.New(rand.NewSource(seed))
+	id := r.Intn(65535)
+
+	header := NewDNSHeader(id, 1, RECURSION_DESIRED)
+	question := DNSQuestion{
+		Name:  name,
+		Type:  recordType,
+		Class: CLASS_IN,
+	}
+
+	return header, question
 }
 
 func main() {
