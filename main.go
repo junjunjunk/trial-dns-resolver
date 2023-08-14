@@ -20,7 +20,7 @@ const (
 type DNSHeader struct {
 	ID             int
 	Flags          int
-	NumQuestion    int
+	NumQuestions   int
 	NumAnswers     int
 	NumAuthorities int
 	NumAdditionals int
@@ -31,11 +31,11 @@ type DNSQuestion struct {
 	Class int
 }
 
-func NewDNSHeader(id int, numQuestion int, flags int) DNSHeader {
+func NewDNSHeader(id int, numQuestions int, flags int) DNSHeader {
 	return DNSHeader{
 		ID:             id,
 		Flags:          flags,
-		NumQuestion:    numQuestion,
+		NumQuestions:   numQuestions,
 		NumAnswers:     0,
 		NumAuthorities: 0,
 		NumAdditionals: 0,
@@ -58,6 +58,47 @@ func EncodeDNSName(domainName string) ([]byte, error) {
 		}
 	}
 	// TODO?: Add End of Bytes 0x00.
+	return buf.Bytes(), nil
+}
+
+func HeaderToBytes(header DNSHeader) ([]byte, error) {
+	var buf bytes.Buffer
+
+	err := binary.Write(&buf, binary.BigEndian, header.ID)
+	if err != nil {
+		return nil, fmt.Errorf("headerToBytes error: %w", err)
+	}
+
+	err = binary.Write(&buf, binary.BigEndian, header.Flags)
+	if err != nil {
+		return nil, fmt.Errorf("headerToBytes error: %w", err)
+	}
+
+	err = binary.Write(&buf, binary.BigEndian, byte(header.NumQuestions))
+	if err != nil {
+		return nil, fmt.Errorf("headerToBytes error: %w", err)
+	}
+
+	err = binary.Write(&buf, binary.BigEndian, byte(header.NumAnswers))
+	if err != nil {
+		return nil, fmt.Errorf("headerToBytes error: %w", err)
+	}
+
+	err = binary.Write(&buf, binary.BigEndian, byte(header.NumAuthorities))
+	if err != nil {
+		return nil, fmt.Errorf("headerToBytes error: %w", err)
+	}
+
+	err = binary.Write(&buf, binary.BigEndian, byte(header.NumAdditionals))
+	if err != nil {
+		return nil, fmt.Errorf("headerToBytes error: %w", err)
+	}
+
+	return buf.Bytes(), nil
+}
+
+func QuestionToBytes(header DNSHeader) ([]byte, error) {
+	var buf bytes.Buffer
 	return buf.Bytes(), nil
 }
 
@@ -93,5 +134,5 @@ func main() {
 	binary.Write(&buf, binary.BigEndian, header)
 	binary.Write(&buf, binary.BigEndian, question)
 
-	fmt.Println(buf.Bytes())
+	fmt.Printf("%q\n", buf)
 }
