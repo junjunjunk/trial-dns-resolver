@@ -97,8 +97,24 @@ func HeaderToBytes(header DNSHeader) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func QuestionToBytes(header DNSHeader) ([]byte, error) {
+func QuestionToBytes(question DNSQuestion) ([]byte, error) {
 	var buf bytes.Buffer
+
+	err := binary.Write(&buf, binary.BigEndian, question.Name)
+	if err != nil {
+		return nil, fmt.Errorf("headerToBytes error: %w", err)
+	}
+
+	err = binary.Write(&buf, binary.BigEndian, byte(question.Type))
+	if err != nil {
+		return nil, fmt.Errorf("headerToBytes error: %w", err)
+	}
+
+	err = binary.Write(&buf, binary.BigEndian, byte(question.Class))
+	if err != nil {
+		return nil, fmt.Errorf("headerToBytes error: %w", err)
+	}
+
 	return buf.Bytes(), nil
 }
 
