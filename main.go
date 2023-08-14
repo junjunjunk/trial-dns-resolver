@@ -22,10 +22,27 @@ func main() {
 		return
 	}
 
-	respHeader, err := parser.ParseHeader(bytes.NewBuffer(response))
+	buf := bytes.NewReader(response)
+
+	respHeader, err := parser.ParseHeader(buf)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 	fmt.Printf("%+v\n", respHeader)
+
+	respQuestion, err := parser.ParseQuestion(buf)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Printf("%+v\n", respQuestion)
+
+	respRecord, err := parser.ParseRecord(buf)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Printf("%+v\n", respRecord)
+
 }

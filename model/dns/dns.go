@@ -33,6 +33,6 @@ type DNSRecord struct {
 	Name  []byte
 	Type  uint16
 	Class uint16
-	TTL   uint16
-	Data  []byte
+	TTL   uint32
+	Data  uint16
 }
