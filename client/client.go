@@ -8,34 +8,12 @@ import (
 	"net"
 	"strings"
 	"time"
+
+	"github.com/junjunjunk/trial-dns-resolver/model/dns"
 )
 
-const (
-	TYPE_A   = 1
-	CLASS_IN = 1
-	// It is necessary to set any time for talking to a DNS resolver.
-	// The encoding for the flags is defined in section 4.1.1 of RFC 1035.
-	RECURSION_DESIRED = 1 << 8
-)
-
-type dnsHeader struct {
-	ID             uint16
-	Flags          uint16
-	NumQuestions   uint16
-	NumAnswers     uint16
-	NumAuthorities uint16
-	NumAdditionals uint16
-}
-
-// REF: https://datatracker.ietf.org/doc/html/rfc1035#section-4.1.2
-type dnsQuestion struct {
-	Name  []byte
-	Type  uint16
-	Class uint16
-}
-
-func newDNSHeader(id uint16, numQuestions uint16, flags uint16) dnsHeader {
-	return dnsHeader{
+func newDNSHeader(id uint16, numQuestions uint16, flags uint16) dns.DNSHeader {
+	return dns.DNSHeader{
 		ID:             id,
 		Flags:          flags,
 		NumQuestions:   numQuestions,
@@ -70,7 +48,7 @@ func EncodeDNSName(domainName string) ([]byte, error) {
 }
 
 // Fixed Length Encoding
-func headerToBytes(header dnsHeader) ([]byte, error) {
+func headerToBytes(header dns.DNSHeader) ([]byte, error) {
 	var buf bytes.Buffer
 
 	// decodedData, _ := hex.DecodeString("0x8298")
@@ -108,7 +86,7 @@ func headerToBytes(header dnsHeader) ([]byte, error) {
 }
 
 // Fixed Length Encoding
-func questionToBytes(question dnsQuestion) ([]byte, error) {
+func questionToBytes(question dns.DNSQuestion) ([]byte, error) {
 	var buf bytes.Buffer
 
 	err := binary.Write(&buf, binary.BigEndian, question.Name)
@@ -140,11 +118,11 @@ func BuildQuery(domainName string, recordType uint16) ([]byte, error) {
 	r := rand.New(rand.NewSource(seed))
 	id := uint16(r.Intn(65535))
 
-	header := newDNSHeader(id, 1, RECURSION_DESIRED)
-	question := dnsQuestion{
+	header := newDNSHeader(id, 1, dns.RECURSION_DESIRED)
+	question := dns.DNSQuestion{
 		Name:  name,
 		Type:  recordType,
-		Class: CLASS_IN,
+		Class: dns.CLASS_IN,
 	}
 
 	headerBytes, err := headerToBytes(header)
