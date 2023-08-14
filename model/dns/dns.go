@@ -36,3 +36,11 @@ type DNSRecord struct {
 	TTL   uint32
 	Data  uint16
 }
+
+type DNSPacket struct {
+	Header      *DNSHeader
+	Questions   []*DNSQuestion
+	Answers     []*DNSRecord
+	Authorities []*DNSRecord
+	Additionals []*DNSRecord
+}

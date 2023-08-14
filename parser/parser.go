@@ -3,6 +3,7 @@ package parser
 import (
 	"bytes"
 	"encoding/binary"
+	"fmt"
 	"io"
 
 	"github.com/junjunjunk/trial-dns-resolver/model/dns"
@@ -110,4 +111,47 @@ func decodeCompressedName(length int, reader *bytes.Reader) []byte {
 	result := DecodeName(reader)
 	reader.Seek(currentPosition, io.SeekStart)
 	return result
+}
+
+func ParseDNSPacket(reader *bytes.Reader) (*dns.DNSPacket, error) {
+	dnsPacket := &dns.DNSPacket{}
+	header, err := ParseHeader(reader)
+	fmt.Printf("%+v\n", header)
+	if err != nil {
+		return nil, err
+	}
+	dnsPacket.Header = header
+	for i := 0; i < int(dnsPacket.Header.NumQuestions); i++ {
+		question, err := ParseQuestion(reader)
+		if err != nil {
+			return nil, err
+		}
+		dnsPacket.Questions = append(dnsPacket.Questions, question)
+	}
+
+	for i := 0; i < int(dnsPacket.Header.NumAnswers); i++ {
+		answer, err := ParseRecord(reader)
+		if err != nil {
+			return nil, err
+		}
+		dnsPacket.Answers = append(dnsPacket.Answers, answer)
+	}
+
+	for i := 0; i < int(dnsPacket.Header.NumAuthorities); i++ {
+		auhtority, err := ParseRecord(reader)
+		if err != nil {
+			return nil, err
+		}
+		dnsPacket.Authorities = append(dnsPacket.Authorities, auhtority)
+	}
+
+	for i := 0; i < int(dnsPacket.Header.NumAdditionals); i++ {
+		additinonal, err := ParseRecord(reader)
+		if err != nil {
+			return nil, err
+		}
+		dnsPacket.Additionals = append(dnsPacket.Additionals, additinonal)
+	}
+
+	return dnsPacket, nil
 }
