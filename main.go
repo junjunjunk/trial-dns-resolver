@@ -176,7 +176,7 @@ func BuildQuery(domainName string, recordType uint16) ([]byte, error) {
 }
 
 func main() {
-	query, err := BuildQuery("google1.com", TYPE_A)
+	query, err := BuildQuery("www.example.com", TYPE_A)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -200,4 +200,6 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	fmt.Printf("%q\n", response)
 }
