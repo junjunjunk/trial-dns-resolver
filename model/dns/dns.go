@@ -1,5 +1,7 @@
 package dns
 
+import "fmt"
+
 const (
 	TYPE_A   = 1
 	CLASS_IN = 1
@@ -34,7 +36,7 @@ type DNSRecord struct {
 	Type  uint16
 	Class uint16
 	TTL   uint32
-	Data  uint16
+	Data  [4]byte
 }
 
 type DNSPacket struct {
@@ -43,4 +45,39 @@ type DNSPacket struct {
 	Answers     []*DNSRecord
 	Authorities []*DNSRecord
 	Additionals []*DNSRecord
+}
+
+func (p *DNSPacket) String() string {
+	return fmt.Sprintf("Header: %+v\nQuestions: %s\nAnswers: %s\nAdditionals: %s\n",
+		p.Header, formatQuestions(p.Questions), formatRecords(p.Answers), formatRecords(p.Additionals))
+}
+
+func formatQuestions(questions []*DNSQuestion) string {
+	var result string
+	if len(questions) == 0 {
+		return "x"
+	}
+	for i, q := range questions {
+		if i > 0 {
+			fmt.Print(", ")
+		}
+		result += fmt.Sprintf("%+v", (q))
+	}
+	return result
+}
+
+func formatRecords(records []*DNSRecord) string {
+	var result string
+	if len(records) == 0 {
+		return "x"
+	}
+	for i, r := range records {
+		if i > 0 {
+			fmt.Print(", ")
+		}
+		result += fmt.Sprintf("%+v", (r))
+		fmt.Printf("%q\n", r)
+
+	}
+	return result
 }

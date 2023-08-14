@@ -30,6 +30,6 @@ func main() {
 		return
 	}
 
-	fmt.Printf("%+v\n", packet)
+	fmt.Printf(packet.String())
 
 }

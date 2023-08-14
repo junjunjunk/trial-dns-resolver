@@ -56,10 +56,16 @@ func ParseRecord(reader *bytes.Reader) (*dns.DNSRecord, error) {
 		return nil, err
 	}
 
+	_, err = reader.Read(make([]byte, 2)) // skip dataLen
+	if err != nil {
+		return nil, err
+	}
+
 	err = binary.Read(reader, binary.BigEndian, &record.Data)
 	if err != nil {
 		return nil, err
 	}
+	fmt.Printf("%+v", record)
 
 	return &record, nil
 }
