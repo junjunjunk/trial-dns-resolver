@@ -60,9 +60,18 @@ func ParseRecord(reader *bytes.Reader) (*dns.DNSRecord, error) {
 		return nil, err
 	}
 
-	err = binary.Read(reader, binary.BigEndian, &record.Data)
-	if err != nil {
-		return nil, err
+	if record.Type == dns.TYPE_NS {
+		record.Data = DecodeName(reader)
+	} else if record.Type == dns.TYPE_A {
+		err = binary.Read(reader, binary.BigEndian, &record.Data)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		err = binary.Read(reader, binary.BigEndian, &record.Data)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &record, nil

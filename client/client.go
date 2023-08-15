@@ -149,9 +149,9 @@ func buildQuery(domainName string, recordType uint16) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func requestDNSResolver(query []byte) ([]byte, error) {
+func requestDNSResolver(ipAddress string, query []byte) ([]byte, error) {
 	// port53: dns port
-	conn, err := net.Dial("udp", "8.8.8.8:53")
+	conn, err := net.Dial("udp", ipAddress+":53")
 	if err != nil {
 		return nil, fmt.Errorf("net dial error: %w", err)
 	}
@@ -177,7 +177,7 @@ func LookUpDomain(domainName string) (string, error) {
 		return "", fmt.Errorf("build query error: %w", err)
 	}
 
-	response, err := requestDNSResolver(query)
+	response, err := requestDNSResolver("8.8.8.8", query)
 	if err != nil {
 		return "", fmt.Errorf("request dns resolver error: %w", err)
 	}
@@ -190,4 +190,25 @@ func LookUpDomain(domainName string) (string, error) {
 	}
 
 	return packet.IP(), nil
+}
+
+func SendQuery(ipAddress string, domainName string, recordType uint16) (*dns.DNSPacket, error) {
+	query, err := buildQuery(domainName, recordType)
+	if err != nil {
+		return nil, fmt.Errorf("build query error: %w", err)
+	}
+
+	response, err := requestDNSResolver(ipAddress, query)
+	if err != nil {
+		return nil, fmt.Errorf("request dns resolver error: %w", err)
+	}
+
+	reader := bytes.NewReader(response)
+
+	packet, err := parser.ParseDNSPacket(reader)
+	if err != nil {
+		return nil, fmt.Errorf("parse packet error: %w", err)
+	}
+
+	return packet, nil
 }

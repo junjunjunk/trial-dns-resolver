@@ -4,12 +4,13 @@ import (
 	"fmt"
 
 	"github.com/junjunjunk/trial-dns-resolver/client"
+	"github.com/junjunjunk/trial-dns-resolver/model/dns"
 )
 
 func main() {
-	ip, err := client.LookUpDomain("www.example.com")
+	packet, err := client.SendQuery("198.41.0.4", "google.com", dns.TYPE_TXT)
 	if err != nil {
 		return
 	}
-	fmt.Println(ip)
+	fmt.Println(packet.String())
 }

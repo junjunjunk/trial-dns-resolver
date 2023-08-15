@@ -6,6 +6,8 @@ import (
 
 const (
 	TYPE_A   = 1
+	TYPE_NS  = 2
+	TYPE_TXT = 16
 	CLASS_IN = 1
 	// It is necessary to set any time for talking to a DNS resolver.
 	// The encoding for the flags is defined in section 4.1.1 of RFC 1035.
@@ -38,7 +40,7 @@ type DNSRecord struct {
 	Type  uint16
 	Class uint16
 	TTL   uint32
-	Data  [4]byte
+	Data  []byte
 }
 
 type DNSPacket struct {
@@ -50,8 +52,8 @@ type DNSPacket struct {
 }
 
 func (p *DNSPacket) String() string {
-	return fmt.Sprintf("Header: %+v\nQuestions: %s\nAnswers: %s\nAdditionals: %s\n",
-		p.Header, formatQuestions(p.Questions), formatRecords(p.Answers), formatRecords(p.Additionals))
+	return fmt.Sprintf("[Header]\n%+v\n[Questions]\n%s\n[Answers]\n%s\n[Authorities]\n%s\n[Additionals]\n%s\n",
+		p.Header, formatQuestions(p.Questions), formatRecords(p.Answers), formatRecords(p.Authorities), formatRecords(p.Additionals))
 }
 
 func (p *DNSPacket) IP() string {
@@ -101,10 +103,7 @@ func formatRecords(records []*DNSRecord) string {
 		return "x"
 	}
 	for _, r := range records {
-
-		result += fmt.Sprintf("%+v", (r))
-		fmt.Printf("%q\n", r)
-
+		result += fmt.Sprintf("%+v\n", (r))
 	}
 	return result
 }
