@@ -77,7 +77,6 @@ func (p *DNSPacket) IP() string {
 				result += fmt.Sprintf(".")
 			}
 			result += fmt.Sprintf("%d", b)
-
 		}
 	}
 	result += "]"
@@ -106,4 +105,45 @@ func formatRecords(records []*DNSRecord) string {
 		result += fmt.Sprintf("%+v\n", (r))
 	}
 	return result
+}
+
+func (p *DNSPacket) GetNameserver() string {
+	for _, x := range p.Authorities {
+		if x.Type == TYPE_NS {
+			return string(x.Data)
+		}
+	}
+	return ""
+}
+
+func (p *DNSPacket) GetNameserverIP() string {
+	for _, x := range p.Additionals {
+		if x.Type == TYPE_A {
+			result := ""
+			for i, b := range x.Data {
+				if i > 0 {
+					result += fmt.Sprintf(".")
+				}
+				result += fmt.Sprintf("%d", b)
+			}
+			return result
+		}
+	}
+	return ""
+}
+
+func (p *DNSPacket) GetAnswer() string {
+	for _, x := range p.Answers {
+		if x.Type == TYPE_A {
+			result := ""
+			for i, b := range x.Data {
+				if i > 0 {
+					result += fmt.Sprintf(".")
+				}
+				result += fmt.Sprintf("%d", b)
+			}
+			return result
+		}
+	}
+	return ""
 }

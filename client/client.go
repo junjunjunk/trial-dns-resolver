@@ -212,3 +212,27 @@ func SendQuery(ipAddress string, domainName string, recordType uint16) (*dns.DNS
 
 	return packet, nil
 }
+
+func Resolve(domainName string, recordType uint16) (string, error) {
+	nameServer := "198.41.0.4"
+	for {
+		fmt.Printf("Querying %s for %s\n", nameServer, domainName)
+		packet, err := SendQuery(nameServer, domainName, recordType)
+		if err != nil {
+			return "", err
+		}
+
+		if ip := packet.GetAnswer(); ip != "" {
+			return ip, nil
+		} else if nsIP := packet.GetNameserverIP(); nsIP != "" {
+			nameServer = nsIP
+		} else if nsDomain := packet.GetNameserver(); nsDomain != "" {
+			nameServer, err = Resolve(nsDomain, dns.TYPE_A)
+			if err != nil {
+				return "", err
+			}
+		} else {
+			return "", fmt.Errorf("something went wrong")
+		}
+	}
+}
