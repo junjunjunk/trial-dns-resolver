@@ -8,7 +8,9 @@ import (
 )
 
 func main() {
-	packet, err := client.SendQuery("198.41.0.4", "google.com", dns.TYPE_TXT)
+	// 198.41.0.4
+	// Real DNS resolvers actually do hardcode the IP addresses of the root nameservers. This is because if you’re implementing DNS, you have to start somewhere
+	packet, err := client.SendQuery("192.12.94.30", "google.com", dns.TYPE_TXT)
 	if err != nil {
 		return
 	}

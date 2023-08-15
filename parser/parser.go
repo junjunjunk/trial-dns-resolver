@@ -55,23 +55,21 @@ func ParseRecord(reader *bytes.Reader) (*dns.DNSRecord, error) {
 		return nil, err
 	}
 
-	_, err = reader.Read(make([]byte, 2)) // skip dataLen
+	dataLen := make([]byte, 2)
+	_, err = reader.Read(dataLen) // skip dataLen
 	if err != nil {
 		return nil, err
 	}
 
 	if record.Type == dns.TYPE_NS {
 		record.Data = DecodeName(reader)
-	} else if record.Type == dns.TYPE_A {
-		err = binary.Read(reader, binary.BigEndian, &record.Data)
-		if err != nil {
-			return nil, err
-		}
 	} else {
-		err = binary.Read(reader, binary.BigEndian, &record.Data)
+		tmpBuf := make([]byte, binary.BigEndian.Uint16(dataLen))
+		err = binary.Read(reader, binary.BigEndian, &tmpBuf)
 		if err != nil {
 			return nil, err
 		}
+		record.Data = tmpBuf
 	}
 
 	return &record, nil
