@@ -3,7 +3,6 @@ package parser
 import (
 	"bytes"
 	"encoding/binary"
-	"fmt"
 	"io"
 
 	"github.com/junjunjunk/trial-dns-resolver/model/dns"
@@ -65,7 +64,6 @@ func ParseRecord(reader *bytes.Reader) (*dns.DNSRecord, error) {
 	if err != nil {
 		return nil, err
 	}
-	fmt.Printf("%+v", record)
 
 	return &record, nil
 }
@@ -122,7 +120,6 @@ func decodeCompressedName(length int, reader *bytes.Reader) []byte {
 func ParseDNSPacket(reader *bytes.Reader) (*dns.DNSPacket, error) {
 	dnsPacket := &dns.DNSPacket{}
 	header, err := ParseHeader(reader)
-	fmt.Printf("%+v\n", header)
 	if err != nil {
 		return nil, err
 	}

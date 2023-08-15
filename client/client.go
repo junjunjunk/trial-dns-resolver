@@ -4,12 +4,13 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
-	"math/rand"
+	"math/rand" // Do not use for crypt.
 	"net"
 	"strings"
 	"time"
 
 	"github.com/junjunjunk/trial-dns-resolver/model/dns"
+	"github.com/junjunjunk/trial-dns-resolver/parser"
 )
 
 func newDNSHeader(id uint16, numQuestions uint16, flags uint16) dns.DNSHeader {
@@ -41,8 +42,7 @@ func EncodeDNSName(domainName string) ([]byte, error) {
 
 	err := buf.WriteByte(0x00)
 	if err != nil {
-		fmt.Println("Error writing null terminator:", err)
-		return nil, err
+		return nil, fmt.Errorf("Error writing null terminator: %w", err)
 	}
 	return buf.Bytes(), nil
 }
@@ -107,11 +107,11 @@ func questionToBytes(question dns.DNSQuestion) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func BuildQuery(domainName string, recordType uint16) ([]byte, error) {
+func buildQuery(domainName string, recordType uint16) ([]byte, error) {
 	name, err := EncodeDNSName(domainName)
 
 	if err != nil {
-		fmt.Println(err)
+		return nil, fmt.Errorf("buildQuery error: %w", err)
 	}
 
 	seed := time.Now().UnixNano()
@@ -127,32 +127,28 @@ func BuildQuery(domainName string, recordType uint16) ([]byte, error) {
 
 	headerBytes, err := headerToBytes(header)
 	if err != nil {
-		fmt.Println(err)
-		return nil, err
+		return nil, fmt.Errorf("buildQuery error: %w", err)
 	}
 	questionBytes, err := questionToBytes(question)
 	if err != nil {
-		fmt.Println(err)
-		return nil, err
+		return nil, fmt.Errorf("buildQuery error: %w", err)
 	}
 
 	var buf bytes.Buffer
 	_, err = buf.Write(headerBytes)
 	if err != nil {
-		fmt.Println(fmt.Errorf("buf write error: %w", err))
-		return nil, err
+		return nil, fmt.Errorf("buf write error: %w", err)
 	}
 
 	_, err = buf.Write(questionBytes)
 	if err != nil {
-		fmt.Println(fmt.Errorf("buf write error: %w", err))
-		return nil, err
+		return nil, fmt.Errorf("buf write error: %w", err)
 	}
 
 	return buf.Bytes(), nil
 }
 
-func RequestDNSResolver(query []byte) ([]byte, error) {
+func requestDNSResolver(query []byte) ([]byte, error) {
 	// port53: dns port
 	conn, err := net.Dial("udp", "8.8.8.8:53")
 	if err != nil {
@@ -172,4 +168,25 @@ func RequestDNSResolver(query []byte) ([]byte, error) {
 	}
 
 	return response, nil
+}
+
+func LookUpDomain(domainName string) (string, error) {
+	query, err := buildQuery(domainName, dns.TYPE_A)
+	if err != nil {
+		return "", fmt.Errorf("build query error: %w", err)
+	}
+
+	response, err := requestDNSResolver(query)
+	if err != nil {
+		return "", fmt.Errorf("request dns resolver error: %w", err)
+	}
+
+	reader := bytes.NewReader(response)
+
+	packet, err := parser.ParseDNSPacket(reader)
+	if err != nil {
+		return "", fmt.Errorf("parse packet error: %w", err)
+	}
+
+	return packet.IP(), nil
 }

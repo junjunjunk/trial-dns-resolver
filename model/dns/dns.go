@@ -54,23 +54,33 @@ func (p *DNSPacket) String() string {
 		p.Header, formatQuestions(p.Questions), formatRecords(p.Answers), formatRecords(p.Additionals))
 }
 
-func (p *DNSPacket) PrintIP() {
+func (p *DNSPacket) IP() string {
 	var ipAddresses [][]byte
 	for _, a := range p.Answers {
 		ipAddresses = append(ipAddresses, a.Data[:])
 	}
 
-	for _, ip := range ipAddresses {
-		var result string
-		for i, b := range ip {
-			if i > 0 {
+	if len(ipAddresses) == 0 {
+		return ""
+	}
+
+	var result string
+	result = "["
+	for i, ip := range ipAddresses {
+		if i > 0 {
+			result += fmt.Sprintf(",")
+		}
+		for j, b := range ip {
+			if j > 0 {
 				result += fmt.Sprintf(".")
 			}
 			result += fmt.Sprintf("%d", b)
 
 		}
-		fmt.Println(result)
 	}
+	result += "]"
+
+	return result
 }
 
 func formatQuestions(questions []*DNSQuestion) string {
