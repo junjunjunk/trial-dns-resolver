@@ -31,5 +31,6 @@ func main() {
 	}
 
 	fmt.Printf(packet.String())
+	packet.PrintIP()
 
 }

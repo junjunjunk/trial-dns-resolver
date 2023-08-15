@@ -1,6 +1,8 @@
 package dns
 
-import "fmt"
+import (
+	"fmt"
+)
 
 const (
 	TYPE_A   = 1
@@ -52,15 +54,32 @@ func (p *DNSPacket) String() string {
 		p.Header, formatQuestions(p.Questions), formatRecords(p.Answers), formatRecords(p.Additionals))
 }
 
+func (p *DNSPacket) PrintIP() {
+	var ipAddresses [][]byte
+	for _, a := range p.Answers {
+		ipAddresses = append(ipAddresses, a.Data[:])
+	}
+
+	for _, ip := range ipAddresses {
+		var result string
+		for i, b := range ip {
+			if i > 0 {
+				result += fmt.Sprintf(".")
+			}
+			result += fmt.Sprintf("%d", b)
+
+		}
+		fmt.Println(result)
+	}
+}
+
 func formatQuestions(questions []*DNSQuestion) string {
 	var result string
 	if len(questions) == 0 {
 		return "x"
 	}
-	for i, q := range questions {
-		if i > 0 {
-			fmt.Print(", ")
-		}
+	for _, q := range questions {
+
 		result += fmt.Sprintf("%+v", (q))
 	}
 	return result
@@ -71,10 +90,8 @@ func formatRecords(records []*DNSRecord) string {
 	if len(records) == 0 {
 		return "x"
 	}
-	for i, r := range records {
-		if i > 0 {
-			fmt.Print(", ")
-		}
+	for _, r := range records {
+
 		result += fmt.Sprintf("%+v", (r))
 		fmt.Printf("%q\n", r)
 
