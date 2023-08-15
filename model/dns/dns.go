@@ -68,7 +68,7 @@ func (p *DNSPacket) IP() string {
 	result = "["
 	for i, ip := range ipAddresses {
 		if i > 0 {
-			result += fmt.Sprintf(",")
+			result += fmt.Sprintf(", ")
 		}
 		for j, b := range ip {
 			if j > 0 {
