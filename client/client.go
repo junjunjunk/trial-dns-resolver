@@ -118,7 +118,8 @@ func buildQuery(domainName string, recordType uint16) ([]byte, error) {
 	r := rand.New(rand.NewSource(seed))
 	id := uint16(r.Intn(65535))
 
-	header := newDNSHeader(id, 1, dns.RECURSION_DESIRED)
+	// header := newDNSHeader(id, 1, dns.RECURSION_DESIRED)
+	header := newDNSHeader(id, 1, 0)
 	question := dns.DNSQuestion{
 		Name:  name,
 		Type:  recordType,
